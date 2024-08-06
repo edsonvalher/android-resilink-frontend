@@ -1,10 +1,12 @@
 package com.valher.resilink.common.condominio.data.repository
+import com.valher.core.model.NetworkResponse
 import com.valher.resilink.common.condominio.data.api.CondominioApiService
 import com.valher.resilink.common.condominio.data.model.Condominio
 import kotlinx.coroutines.test.runTest
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.ResponseBody
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.mockito.kotlin.*
@@ -21,21 +23,24 @@ class CondominioRepositoryImplTest{
             Condominio(id = "1", nombre = "Condominio 1", version = "1.0", activo = true),
             Condominio(id = "2", nombre = "Condominio 2", version = "1.0", activo = true)
         )
-        whenever(apiService.getCondominios()).thenReturn(Response.success(mockCondominios))
+        val mockResponse = NetworkResponse(
+            data = mockCondominios,
+            mensaje = "Condominios obtenidos exitosamente",
+            estado = true
+        )
+        whenever(apiService.getCondominios()).thenReturn(Response.success(mockResponse))
         //WHEN
-        val result = apiService.getCondominios()
+        val result = repository.getCondominios()
         //THEN
-        assertTrue(result.isSuccessful)
-        assertEquals(mockCondominios, result.body())
+        assertEquals(true, result.estado)
+        assertEquals(mockCondominios, result.data)
     }
 
     @Test
     fun `Deberia retornar un error al llamar el API con error`() = runTest {
         //GIVEN
-        val errorResponse = Response.error<List<Condominio>>(
-            404,
-            ResponseBody.create("application/json".toMediaType(), "{}")
-        )
+        val errorResponseBody = ResponseBody.create("application/json".toMediaType(), "{}")
+        val errorResponse = Response.error<NetworkResponse<List<Condominio>>>(404, errorResponseBody)
         whenever(apiService.getCondominios()).thenReturn(errorResponse)
         //WHEN
         val result = apiService.getCondominios()

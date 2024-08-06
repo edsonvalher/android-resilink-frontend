@@ -27,8 +27,8 @@ object NetworkModule {
         val logging = HttpLoggingInterceptor()
         logging.level = if (CoreConfig.DEBUG) HttpLoggingInterceptor.Level.BODY else HttpLoggingInterceptor.Level.NONE
 
-        val username = "tu_usuario" // Reemplaza con tu usuario
-        val password = "tu_contraseña" // Reemplaza con tu contraseña
+        val username = CoreConfig.username // Reemplaza con tu usuario
+        val password = CoreConfig.password // Reemplaza con tu contraseña
 
         return OkHttpClient.Builder()
             .addInterceptor(BasicAuthInterceptor(username, password))
@@ -56,7 +56,7 @@ object NetworkModule {
     @Named("basic")
     fun provideBasicAuthRetrofit(@Named("basic") okHttpClient: OkHttpClient): Retrofit {
         return Retrofit.Builder()
-            .baseUrl(CoreConfig.BASE_URL)
+            .baseUrl("${CoreConfig.BASE_URL}/api/")
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
@@ -66,7 +66,7 @@ object NetworkModule {
     @Named("jwt")
     fun provideJwtAuthRetrofit(@Named("jwt") okHttpClient: OkHttpClient): Retrofit {
         return Retrofit.Builder()
-            .baseUrl(CoreConfig.BASE_URL)
+            .baseUrl("${CoreConfig.BASE_URL}/api/")
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()

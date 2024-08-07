@@ -8,12 +8,15 @@ import javax.inject.Inject
 import javax.inject.Named
 
 class CondominioRepositoryImpl @Inject constructor(
-    @Named("basic") private val apiService: CondominioApiService
+    private val apiService: CondominioApiService
 ) : CondominioRepository {
-
     override suspend fun getCondominios(): NetworkResponse<List<Condominio>> {
-        return NetworkRequest.execute {
-            apiService.getCondominios()
+        val response = apiService.getCondominios()
+        return if (response.isSuccessful) {
+            response.body() ?: NetworkResponse(null, "Respuesta vacía", false)
+        } else {
+            NetworkResponse(null, "Error de red: ${response.code()} ${response.message()}", false)
         }
+
     }
 }

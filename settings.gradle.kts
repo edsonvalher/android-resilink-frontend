@@ -21,4 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "resilink"
 include(":app")
-include(":app:core")
+include(":core")

@@ -60,7 +60,10 @@ fun CondominioDropDown() {
 
             }
             errorMessage != null -> {
-                Text(text = errorMessage ?: "Erro desconhecido")
+                Text(
+                    text = "No fue posible cargar el control",
+                    color = MaterialTheme.colorScheme.error
+                )
             }
             else -> {
                 ExposedDropdownMenuBox(

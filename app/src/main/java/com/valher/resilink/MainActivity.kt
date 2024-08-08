@@ -15,6 +15,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.valher.resilink.ui.theme.ResilinkTheme
 import dagger.hilt.android.AndroidEntryPoint
 import com.valher.resilink.common.condominio.presentation.ui.CondominioDropDown
+import com.valher.resilink.common.sector.presentation.ui.SectorDropDown
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -37,6 +38,7 @@ class MainActivity : ComponentActivity() {
 fun MainContent(modifier: Modifier = Modifier) {
     Column(modifier = modifier.fillMaxSize()) {
         CondominioDropDown() // Aquí integramos el Dropdown
+        SectorDropDown()
     }
 }
 

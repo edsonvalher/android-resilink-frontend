@@ -12,14 +12,14 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class CondominioViewModel  @Inject constructor(
+open class CondominioViewModel  @Inject constructor(
     private val getCondominiosUseCase: GetCondominiosUseCase): ViewModel(){
         private val _condominios = MutableStateFlow<List<Condominio>>(emptyList())
-    val condominios: StateFlow<List<Condominio>> = _condominios
+    open val condominios: StateFlow<List<Condominio>> = _condominios
         private val _errorMessage = MutableStateFlow<String?>(null)
-    val errorMessage: StateFlow<String?> = _errorMessage
+    open val errorMessage: StateFlow<String?> = _errorMessage
         private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading
+    open val isLoading: StateFlow<Boolean> = _isLoading
 
     init {
         loadCondominios()

@@ -42,10 +42,6 @@ fun SectorDropDown(viewModel: SectorViewModel = hiltViewModel()) {
     val errorMessage by viewModel.errorMessage.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
 
-    //val condominios by viewModel.condominios.collectAsState()
-    //val errorMessage by viewModel.errorMessage.collectAsState()
-    //val isLoading by viewModel.isLoading.collectAsState()
-
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -69,7 +65,8 @@ fun SectorDropDown(viewModel: SectorViewModel = hiltViewModel()) {
                 Text(
                     text = "No fue posible cargar el control",
                     color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.testTag("ErrorMessage")
                 )
             }
             sectores.isNotEmpty() -> {

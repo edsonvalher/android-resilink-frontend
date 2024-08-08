@@ -27,8 +27,8 @@ object NetworkModule {
         val logging = HttpLoggingInterceptor()
         logging.level = if (CoreConfig.DEBUG) HttpLoggingInterceptor.Level.BODY else HttpLoggingInterceptor.Level.NONE
 
-        val username = CoreConfig.username // Reemplaza con tu usuario
-        val password = CoreConfig.password // Reemplaza con tu contraseña
+        val username = CoreConfig.USERNAME // Reemplaza con tu usuario
+        val password = CoreConfig.PASSWORD // Reemplaza con tu contraseña
 
         return OkHttpClient.Builder()
             .addInterceptor(BasicAuthInterceptor(username, password))

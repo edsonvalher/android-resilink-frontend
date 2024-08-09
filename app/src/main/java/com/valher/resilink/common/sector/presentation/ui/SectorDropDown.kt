@@ -5,9 +5,13 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -43,38 +47,30 @@ fun SectorDropDown(viewModel: SectorViewModel = hiltViewModel()) {
     val isLoading by viewModel.isLoading.collectAsState()
 
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-    ){
-        when{
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        when {
             isLoading -> {
-                AnimatedVisibility(
-                    visible = isLoading,
-                    enter = fadeIn(),
-                    exit = fadeOut()
-                ){
-                    CircularProgressIndicator(
-                        modifier = Modifier
-                            .align(Alignment.CenterHorizontally)
-                            .testTag("ProgressIndicator")
-                    )
+                Box(modifier = Modifier.fillMaxWidth().height(50.dp), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(modifier = Modifier.size(24.dp))
                 }
             }
             errorMessage != null -> {
-                Text(
-                    text = "No fue posible cargar el control",
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.testTag("ErrorMessage")
-                )
+                Box(modifier = Modifier.fillMaxWidth().height(50.dp), contentAlignment = Alignment.Center) {
+                    Text(
+                        text = "No fue posible cargar el control",
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.testTag("ErrorMessage")
+                    )
+                }
             }
             sectores.isNotEmpty() -> {
                 ExposedDropdownMenuBox(
                     expanded = abrir,
                     onExpandedChange = { abrir = !abrir },
                     modifier = Modifier.testTag("DropdownMenu")
-                ){
+                ) {
                     OutlinedTextField(
                         value = selected,
                         onValueChange = { selected = it },
@@ -96,14 +92,14 @@ fun SectorDropDown(viewModel: SectorViewModel = hiltViewModel()) {
                     ExposedDropdownMenu(
                         expanded = abrir,
                         onDismissRequest = { abrir = false }
-                    ){
+                    ) {
                         sectores.forEach { sector ->
                             DropdownMenuItem(
                                 text = { Text(text = sector.nombre) },
                                 onClick = {
                                     selected = sector.nombre
                                     selectedId = sector.id
-                                      abrir = false
+                                    abrir = false
                                 }
                             )
                         }
@@ -111,11 +107,13 @@ fun SectorDropDown(viewModel: SectorViewModel = hiltViewModel()) {
                 }
             }
             else -> {
-                Text(
-                    text = "No hay sectores disponibles",
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodyMedium
-                )
+                Box(modifier = Modifier.fillMaxWidth().height(50.dp), contentAlignment = Alignment.Center) {
+                    Text(
+                        text = "No hay sectores disponibles",
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
             }
         }
     }

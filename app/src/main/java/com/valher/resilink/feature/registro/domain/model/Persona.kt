@@ -1,6 +1,6 @@
-package com.valher.resilink.feature.registro.data.model
+package com.valher.resilink.feature.registro.domain.model
 
-data class Persona(
+data class Persona (
     val id: String? = null,
     val numeroCasa: Int,
     val nombre: String,

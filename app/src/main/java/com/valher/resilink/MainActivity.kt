@@ -12,10 +12,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.valher.resilink.ui.theme.ResilinkTheme
 import dagger.hilt.android.AndroidEntryPoint
 import com.valher.resilink.common.condominio.presentation.ui.CondominioDropDown
 import com.valher.resilink.common.sector.presentation.ui.SectorDropDown
+import com.valher.resilink.feature.registro.presentation.ui.RegistrarPersonaScreen
+import com.valher.resilink.routes.Routes
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -36,9 +41,14 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun MainContent(modifier: Modifier = Modifier) {
+    /*
     Column(modifier = modifier.fillMaxSize()) {
-        CondominioDropDown() // Aquí integramos el Dropdown
-        SectorDropDown()
+
+    }
+    */
+    val navigationController = rememberNavController()
+    NavHost(navController = navigationController, startDestination = Routes.Registrarse.route) {
+        composable(Routes.Registrarse.route) { RegistrarPersonaScreen(navigationController) }
     }
 }
 

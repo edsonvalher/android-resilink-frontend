@@ -7,6 +7,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.ui.Alignment
@@ -35,8 +36,6 @@ import com.valher.resilink.shared.SharedDataCondominioSector
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CondominioDropDown(viewModel: CondominioViewModel = hiltViewModel()) {
-    //val viewModel: CondominioViewModel = hiltViewModel()
-
     var abrir by remember { mutableStateOf(false) }
     var selected by remember { mutableStateOf("") }
     var selectedId by remember { mutableStateOf<String?>(null) }
@@ -46,33 +45,25 @@ fun CondominioDropDown(viewModel: CondominioViewModel = hiltViewModel()) {
     val isLoading by viewModel.isLoading.collectAsState()
 
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)
+        modifier = Modifier.fillMaxWidth()
     ) {
         when {
             isLoading -> {
-                AnimatedVisibility(
-                    visible = isLoading,
-                    enter = fadeIn(),
-                    exit = fadeOut()
-                ) {
-                    CircularProgressIndicator(
-                        modifier = Modifier
-                            .align(Alignment.CenterHorizontally)
-                            .testTag("ProgressIndicator")
-                    )
+                Box(modifier = Modifier.fillMaxWidth().height(50.dp), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(modifier = Modifier.size(24.dp))
                 }
             }
             errorMessage != null -> {
-                Text(
-                    text = "No fue posible cargar el control",
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.testTag("ErrorMessage")
-                )
+                Box(modifier = Modifier.fillMaxWidth().height(50.dp), contentAlignment = Alignment.Center) {
+                    Text(
+                        text = "No fue posible cargar el control",
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.testTag("ErrorMessage")
+                    )
+                }
             }
-            else -> {
+            condominios.isNotEmpty() -> {
                 ExposedDropdownMenuBox(
                     expanded = abrir,
                     onExpandedChange = { abrir = !abrir },
@@ -83,7 +74,7 @@ fun CondominioDropDown(viewModel: CondominioViewModel = hiltViewModel()) {
                         onValueChange = { selected = it },
                         readOnly = true,
                         modifier = Modifier
-                            .fillMaxWidth()
+                            .fillMaxWidth() // Se asegura de ocupar todo el ancho disponible
                             .menuAnchor()
                             .background(MaterialTheme.colorScheme.background),
                         singleLine = true,
@@ -107,15 +98,22 @@ fun CondominioDropDown(viewModel: CondominioViewModel = hiltViewModel()) {
                                     selected = condominio.nombre
                                     selectedId = condominio.id
                                     condominio.id?.let {
-                                        SharedDataCondominioSector.selectCondominio(
-                                            it
-                                        )
+                                        SharedDataCondominioSector.selectCondominio(it)
                                     }
                                     abrir = false
                                 }
                             )
                         }
                     }
+                }
+            }
+            else -> {
+                Box(modifier = Modifier.fillMaxWidth().height(50.dp), contentAlignment = Alignment.Center) {
+                    Text(
+                        text = "No hay condominios disponibles",
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
                 }
             }
         }

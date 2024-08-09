@@ -106,4 +106,6 @@ dependencies {
     androidTestImplementation(libs.mockk.android)
     androidTestImplementation(libs.mockk)
     kaptAndroidTest (libs.hilt.android.compiler)
+
+    implementation(libs.androidx.foundation)
 }

@@ -31,8 +31,12 @@ open class CondominioViewModel  @Inject constructor(
             try {
                 val response = getCondominiosUseCase()
                 if (response.estado) {
-                    _condominios.value = response.data ?: emptyList()
-                    _errorMessage.value = null
+                    if (response.data.isNullOrEmpty()) {
+                        _errorMessage.value = "No hay condominios disponibles"
+                    } else{
+                        _condominios.value = response.data ?: emptyList()
+                        _errorMessage.value = null
+                    }
                 } else {
                     _errorMessage.value = response.mensaje
                 }

@@ -1,5 +1,7 @@
 package com.valher.resilink.feature.registro.presentation.ui
 
+import android.content.Intent
+import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -36,18 +38,21 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import com.valher.resilink.feature.registro.presentation.ui.forms.DatosAutenticacion
 import com.valher.resilink.feature.registro.presentation.ui.forms.DatosIdentificacion
 import com.valher.resilink.feature.registro.presentation.ui.forms.DatosResidente
 import com.valher.resilink.feature.registro.presentation.viewmodel.PersonaViewModel
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun RegistrarPersonaScreen(
     navigationController: NavHostController,
+    onPickImage: (Intent) -> Unit,
+    onTakePhoto: (Intent) -> Unit,
     viewModel: PersonaViewModel = hiltViewModel()
 ) {
+    var TAG = "RegistrarPersonaScreen"
     val persona by viewModel.persona.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
@@ -67,6 +72,16 @@ fun RegistrarPersonaScreen(
     val pagerState = rememberPagerState(pageCount = { 3 })
     var isDatosResidenteSuccess by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
+    var fotoUri by remember { mutableStateOf("") }
+    var documentoUri by remember { mutableStateOf("") }
+
+    val galleryIntent = Intent(Intent.ACTION_PICK).apply {
+        type = "image/*"
+    }
+
+    val cameraIntent = Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE)
+
+
 
     Scaffold(
         topBar = {
@@ -130,7 +145,7 @@ fun RegistrarPersonaScreen(
                                 }
                                 1 -> {
 
-                                    DatosIdentificacion(
+                                    DatosAutenticacion(
                                         correo = correo,
                                         onCorreoChange = { correo = it },
                                         confirmCorreo = correo,
@@ -151,8 +166,26 @@ fun RegistrarPersonaScreen(
                                     )
                                 }
                                 2 -> {
-                                    Text(
-                                        text = "Page: 3",
+                                    DatosIdentificacion(
+                                        tipoDocumento = tipoDocumento,
+                                        onTipoDocumentoChange = {tipoDocumento = it} ,
+                                        fechaNacimiento = fechaNacimiento,
+                                        onFechaNacimientoChange = {fechaNacimiento = it},
+                                        dpi = numeroDocumento,
+                                        onDpiChange = {numeroDocumento = it},
+                                        fotoUri = fotoUri,
+                                        onFotoUriChange = {fotoUri = it} ,
+                                        documentoUri = documentoUri,
+                                        onDocumentoUriChange ={documentoUri = it} ,
+                                        onButtonClicked = { clicked ->
+                                            if(clicked){
+                                                coroutineScope.launch {
+                                                    Log.d(TAG, "RegistrarPersonaScreen: $persona")
+                                                }
+                                            }
+                                        },
+                                        onPickImage = { onPickImage(galleryIntent)},
+                                        onTakePhoto = { onTakePhoto(cameraIntent) }
                                     )
                                 }
                             }

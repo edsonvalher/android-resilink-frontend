@@ -13,5 +13,7 @@ data class Persona(
     val codigoAcceso: String,
     val fechaNacimiento: String,
     val activo: Boolean,
-    val numerocasa: String
+    val numerocasa: String,
+    val fotoUri: String,
+    val documentoUri: String
 )

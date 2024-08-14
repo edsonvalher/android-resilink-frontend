@@ -7,7 +7,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
@@ -15,16 +14,16 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.valher.resilink.ui.theme.ResilinkTheme
-import dagger.hilt.android.AndroidEntryPoint
-import com.valher.resilink.common.condominio.presentation.ui.CondominioDropDown
 import com.valher.resilink.common.features.natives.cameragallery.presentation.viewmodel.CameraGalleryViewModel
-import com.valher.resilink.common.sector.presentation.ui.SectorDropDown
 import com.valher.resilink.feature.registro.presentation.ui.RegistrarPersonaScreen
 import com.valher.resilink.routes.Routes
+import com.valher.resilink.ui.theme.ResilinkTheme
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -32,6 +31,13 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val requestPermissionsLauncher = registerForActivityResult(
+            ActivityResultContracts.RequestMultiplePermissions()
+        ) { permissions ->
+            val allGranted = permissions.entries.all { it.value }
+            viewModel.onPermissionsResult(allGranted)
+        }
 
         val pickImageLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
@@ -51,6 +57,18 @@ class MainActivity : ComponentActivity() {
                 val imageUri: Uri? = result.data?.data
                 imageUri?.let {
                     viewModel.onTakePhotoClicked(this, it)
+                }
+            }
+        }
+        // Observar el evento de solicitud de permisos
+        lifecycleScope.launch {
+            viewModel.requestPermissions.collect { shouldRequest ->
+                if (shouldRequest) {
+                    val requiredPermissions = arrayOf(
+                        android.Manifest.permission.CAMERA,
+                        android.Manifest.permission.READ_EXTERNAL_STORAGE
+                    )
+                    requestPermissionsLauncher.launch(requiredPermissions)
                 }
             }
         }

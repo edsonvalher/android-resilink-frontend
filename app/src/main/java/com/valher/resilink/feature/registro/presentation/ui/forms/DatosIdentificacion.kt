@@ -1,5 +1,6 @@
 package com.valher.resilink.feature.registro.presentation.ui.forms
 
+import android.app.Activity
 import android.app.DatePickerDialog
 import android.widget.DatePicker
 import androidx.compose.foundation.clickable
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
@@ -31,6 +33,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.valher.resilink.common.features.natives.cameragallery.presentation.ui.RequestCameraPermission
 import com.valher.resilink.common.features.natives.cameragallery.presentation.viewmodel.CameraGalleryViewModel
 import com.valher.resilink.common.utils.ui.Subtitulo
 import java.util.Calendar
@@ -52,7 +55,7 @@ fun DatosIdentificacion(
     onTakePhoto: () -> Unit,
     cameraGalleryViewModel: CameraGalleryViewModel = hiltViewModel()
 ) {
-    val context = LocalContext.current
+    val activity = LocalContext.current as Activity
     val isButtonClicked = remember { mutableStateOf(false) }
 
     // Dropdown states
@@ -83,7 +86,7 @@ fun DatosIdentificacion(
     }
 
     val datePickerDialog = DatePickerDialog(
-        context,
+        activity,
         { _: DatePicker, selectedYear: Int, selectedMonth: Int, selectedDay: Int ->
             val newDate = "$selectedDay/${selectedMonth + 1}/$selectedYear"
             selectedDate.value = newDate
@@ -103,99 +106,120 @@ fun DatosIdentificacion(
     ) {
         Subtitulo(texto = "Datos de Identificación")
 
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            RadioButton(selected = tipoDocumento == "DPI", onClick = { onTipoDocumentoChange("DPI") })
-            Text(text = "DPI")
-            Spacer(modifier = Modifier.width(16.dp))
-            RadioButton(selected = tipoDocumento == "Pasaporte", onClick = { onTipoDocumentoChange("Pasaporte") })
-            Text(text = "Pasaporte")
-        }
+        // Solicitar permisos usando RequestCameraPermission
+        RequestCameraPermission(
+            viewModel = cameraGalleryViewModel,
+            onPermissionGranted = {
+                // Permisos concedidos
+                Column {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        RadioButton(
+                            selected = tipoDocumento == "DPI",
+                            onClick = { onTipoDocumentoChange("DPI") })
+                        Text(text = "DPI")
+                        Spacer(modifier = Modifier.width(16.dp))
+                        RadioButton(
+                            selected = tipoDocumento == "Pasaporte",
+                            onClick = { onTipoDocumentoChange("Pasaporte") })
+                        Text(text = "Pasaporte")
+                    }
 
-        OutlinedTextField(
-            value = dpi,
-            onValueChange = { onDpiChange(it) },
-            label = { Text("Número de Documento") },
-            modifier = Modifier.fillMaxWidth()
+                    OutlinedTextField(
+                        value = dpi,
+                        onValueChange = { onDpiChange(it) },
+                        label = { Text("Número de Documento") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    OutlinedTextField(
+                        value = selectedDate.value,
+                        onValueChange = { },
+                        label = { Text("Fecha de Nacimiento") },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { datePickerDialog.show() },
+                        enabled = false,
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Foto personal
+                    Box {
+                        TextButton(onClick = { expandedPhoto.value = true }) {
+                            Text("Agregue su fotografía")
+                        }
+
+                        DropdownMenu(
+                            expanded = expandedPhoto.value,
+                            onDismissRequest = { expandedPhoto.value = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Cámara") },
+                                onClick = {
+                                    expandedPhoto.value = false
+                                    onTakePhoto()  // Lanza la cámara
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Galería") },
+                                onClick = {
+                                    expandedPhoto.value = false
+                                    onPickImage()  // Lanza la galería
+                                }
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Foto del documento
+                    Box {
+                        TextButton(onClick = { expandedDoc.value = true }) {
+                            Text("Agregue fotografía del documento de Identificación")
+                        }
+
+                        DropdownMenu(
+                            expanded = expandedDoc.value,
+                            onDismissRequest = { expandedDoc.value = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Cámara") },
+                                onClick = {
+                                    expandedDoc.value = false
+                                    onTakePhoto()  // Lanza la cámara
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Galería") },
+                                onClick = {
+                                    expandedDoc.value = false
+                                    onPickImage()  // Lanza la galería
+                                }
+                            )
+                        }
+                    }
+
+                    Button(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp),
+                        onClick = {
+                            isButtonClicked.value = true
+                            onButtonClicked(true)
+                        }
+                    ) {
+                        Text(text = "Finalizar")
+                    }
+                }
+            },
+            onPermissionDenied = {
+                // Permisos denegados, mostrar mensaje
+                Text(
+                    text = "Permisos de cámara y almacenamiento no concedidos. " +
+                            "Por favor, conceda los permisos para continuar.",
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
         )
-
-        OutlinedTextField(
-            value = selectedDate.value,
-            onValueChange = { },
-            label = { Text("Fecha de Nacimiento") },
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { datePickerDialog.show() },
-            enabled = false,
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Foto personal
-        Box {
-            TextButton(onClick = { expandedPhoto.value = true }) {
-                Text("Agregue su fotografía")
-            }
-
-            DropdownMenu(
-                expanded = expandedPhoto.value,
-                onDismissRequest = { expandedPhoto.value = false }
-            ) {
-                DropdownMenuItem(
-                    text = { Text("Cámara") },
-                    onClick = {
-                        expandedPhoto.value = false
-                        onTakePhoto()  // Lanza la cámara
-                    }
-                )
-                DropdownMenuItem(
-                    text = { Text("Galería") },
-                    onClick = {
-                        expandedPhoto.value = false
-                        onPickImage()  // Lanza la galería
-                    }
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Foto del documento
-        Box {
-            TextButton(onClick = { expandedDoc.value = true }) {
-                Text("Agregue fotografía del documento de Identificación")
-            }
-
-            DropdownMenu(
-                expanded = expandedDoc.value,
-                onDismissRequest = { expandedDoc.value = false }
-            ) {
-                DropdownMenuItem(
-                    text = { Text("Cámara") },
-                    onClick = {
-                        expandedDoc.value = false
-                        onTakePhoto()  // Lanza la cámara
-                    }
-                )
-                DropdownMenuItem(
-                    text = { Text("Galería") },
-                    onClick = {
-                        expandedDoc.value = false
-                        onPickImage()  // Lanza la galería
-                    }
-                )
-            }
-        }
-
-        Button(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp),
-            onClick = {
-                isButtonClicked.value = true
-                onButtonClicked(true)
-            }
-        ) {
-            Text(text = "Finalizar")
-        }
     }
 }

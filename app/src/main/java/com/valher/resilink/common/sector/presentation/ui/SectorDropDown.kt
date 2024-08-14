@@ -33,6 +33,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.valher.resilink.common.sector.data.model.Sector
+import com.valher.resilink.common.sector.presentation.viewmodel.SectorUiState
 import com.valher.resilink.common.sector.presentation.viewmodel.SectorViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -42,20 +43,18 @@ fun SectorDropDown(viewModel: SectorViewModel = hiltViewModel()) {
     var selected by remember { mutableStateOf("") }
     var selectedId by remember { mutableStateOf<String?>(null) }
 
-    val sectores by viewModel.sectores.collectAsState()
-    val errorMessage by viewModel.errorMessage.collectAsState()
-    val isLoading by viewModel.isLoading.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
 
     Column(
         modifier = Modifier.fillMaxWidth()
     ) {
-        when {
-            isLoading -> {
+        when(uiState) {
+            is SectorUiState.Loading -> {
                 Box(modifier = Modifier.fillMaxWidth().height(50.dp), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(modifier = Modifier.size(24.dp))
                 }
             }
-            errorMessage != null -> {
+            is SectorUiState.Error -> {
                 Box(modifier = Modifier.fillMaxWidth().height(50.dp), contentAlignment = Alignment.Center) {
                     Text(
                         text = "No fue posible cargar el control",
@@ -65,7 +64,8 @@ fun SectorDropDown(viewModel: SectorViewModel = hiltViewModel()) {
                     )
                 }
             }
-            sectores.isNotEmpty() -> {
+            is SectorUiState.Success -> {
+                val sectores = (uiState as SectorUiState.Success).sectores
                 ExposedDropdownMenuBox(
                     expanded = abrir,
                     onExpandedChange = { abrir = !abrir },
@@ -106,7 +106,7 @@ fun SectorDropDown(viewModel: SectorViewModel = hiltViewModel()) {
                     }
                 }
             }
-            else -> {
+            is SectorUiState.Empty -> {
                 Box(modifier = Modifier.fillMaxWidth().height(50.dp), contentAlignment = Alignment.Center) {
                     Text(
                         text = "No hay sectores disponibles",

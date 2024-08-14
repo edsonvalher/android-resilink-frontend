@@ -13,13 +13,12 @@ import javax.inject.Inject
 
 @HiltViewModel
 open class CondominioViewModel  @Inject constructor(
-    private val getCondominiosUseCase: GetCondominiosUseCase): ViewModel(){
-        private val _condominios = MutableStateFlow<List<Condominio>>(emptyList())
-    open val condominios: StateFlow<List<Condominio>> = _condominios
-        private val _errorMessage = MutableStateFlow<String?>(null)
-    open val errorMessage: StateFlow<String?> = _errorMessage
-        private val _isLoading = MutableStateFlow(false)
-    open val isLoading: StateFlow<Boolean> = _isLoading
+    private val getCondominiosUseCase: GetCondominiosUseCase
+): ViewModel()
+{
+
+    private val _uiState = MutableStateFlow<CondominioUiState>(CondominioUiState.Loading)
+    val uiState: StateFlow<CondominioUiState> = _uiState
 
     init {
         loadCondominios()
@@ -27,24 +26,20 @@ open class CondominioViewModel  @Inject constructor(
 
     private fun loadCondominios() {
         viewModelScope.launch {
-            _isLoading.value = true
+            _uiState.value = CondominioUiState.Loading
             try {
                 val response = getCondominiosUseCase()
                 if (response.estado) {
                     if (response.data.isNullOrEmpty()) {
-                        _errorMessage.value = "No hay condominios disponibles"
+                        _uiState.value = CondominioUiState.Empty
                     } else{
-                        _condominios.value = response.data ?: emptyList()
-                        _errorMessage.value = null
+                        _uiState.value = CondominioUiState.Success(response.data!!)
                     }
                 } else {
-                    _errorMessage.value = response.mensaje
+                    _uiState.value = CondominioUiState.Error(response.mensaje!!)
                 }
             }catch (e: Exception){
-                _errorMessage.value = "Error de red: ${e.message}"
-            }
-            finally {
-                _isLoading.value = false
+                _uiState.value = CondominioUiState.Error("Error de red: ${e.message}")
             }
         }
     }

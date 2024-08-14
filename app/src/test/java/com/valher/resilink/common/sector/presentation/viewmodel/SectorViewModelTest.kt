@@ -50,9 +50,40 @@ class SectorViewModelTest{
         viewModel = SectorViewModel(useCase)
         advanceUntilIdle()
         // THEN
-        assertEquals(mockSectores, viewModel.sectores.first())
-        assertEquals(null, viewModel.errorMessage.first())
+        val uiState = viewModel.uiState.first()
+        assert(uiState is SectorUiState.Success)
+        assertEquals(mockSectores, (uiState as SectorUiState.Success).sectores)
 
+    }
+    @Test
+    fun `Deberia actualizar el uiState con un mensaje de error cuando la operacion falla`() = runTest {
+        // GIVEN
+        val mockCondominioId = "1"
+        val errorMessage = "Error de red"
+        whenever(useCase.invoke(mockCondominioId)).thenReturn(NetworkResponse(data = null, mensaje = errorMessage, estado = false))
+
+        // WHEN
+        viewModel = SectorViewModel(useCase)
+        advanceUntilIdle()
+
+        // THEN
+        val uiState = viewModel.uiState.first()
+        assert(uiState is SectorUiState.Error)
+        assertEquals(errorMessage, (uiState as SectorUiState.Error).errorMessage)
+    }
+    @Test
+    fun `Deberia actualizar el uiState con Empty cuando la lista de sectores es vacia`() = runTest {
+        // GIVEN
+        val mockCondominioId = "1"
+        whenever(useCase.invoke(mockCondominioId)).thenReturn(NetworkResponse(data = emptyList(), mensaje = null, estado = true))
+
+        // WHEN
+        viewModel = SectorViewModel(useCase)
+        advanceUntilIdle()
+
+        // THEN
+        val uiState = viewModel.uiState.first()
+        assert(uiState is SectorUiState.Empty)
     }
 
 }

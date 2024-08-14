@@ -46,9 +46,38 @@ class CondominioViewModelTest{
         viewModel = CondominioViewModel(useCase)
         advanceUntilIdle()
         // THEN
-        assertEquals(mockCondominios, viewModel.condominios.first())
-        assertEquals(null, viewModel.errorMessage.first())
+        val uiState = viewModel.uiState.first()
+        assert(uiState is CondominioUiState.Success)
+        assertEquals(mockCondominios, (uiState as CondominioUiState.Success).condominios)
 
+    }
+    @Test
+    fun `Deberia actualizar el uiState con un mensaje de error cuando la operacion falla`() = runTest {
+        // GIVEN
+        val errorMessage = "Error de red"
+        whenever(useCase.invoke()).thenReturn(NetworkResponse(data = null, mensaje = errorMessage, estado = false))
+
+        // WHEN
+        viewModel = CondominioViewModel(useCase)
+        advanceUntilIdle()
+
+        // THEN
+        val uiState = viewModel.uiState.first()
+        assert(uiState is CondominioUiState.Error)
+        assertEquals(errorMessage, (uiState as CondominioUiState.Error).errorMessage)
+    }
+    @Test
+    fun `Deberia actualizar el uiState con Empty cuando la lista de Condominios es vacia`() = runTest {
+        // GIVEN
+        whenever(useCase.invoke()).thenReturn(NetworkResponse(data = emptyList(), mensaje = null, estado = true))
+
+        // WHEN
+        viewModel = CondominioViewModel(useCase)
+        advanceUntilIdle()
+
+        // THEN
+        val uiState = viewModel.uiState.first()
+        assert(uiState is CondominioUiState.Empty)
     }
 
 

@@ -17,12 +17,8 @@ import javax.inject.Inject
 open class SectorViewModel @Inject constructor(
     private val getSectoresUseCase: GetSectoresUseCase
 ): ViewModel(){
-    private val _sectores = MutableStateFlow<List<Sector>>(emptyList())
-    open val sectores: StateFlow<List<Sector>> = _sectores
-    private val _errorMessage = MutableStateFlow<String?>(null)
-    open val errorMessage: StateFlow<String?> = _errorMessage
-    private val _isLoading = MutableStateFlow(false)
-    open val isLoading: StateFlow<Boolean> = _isLoading
+    private val _uiState = MutableStateFlow<SectorUiState>(SectorUiState.Empty)
+    val uiState: StateFlow<SectorUiState> = _uiState
 
     init {
 
@@ -35,27 +31,24 @@ open class SectorViewModel @Inject constructor(
     }
     private fun loadSectores(condominioId: String) {
         viewModelScope.launch {
-            _isLoading.value = true
+            _uiState.value = SectorUiState.Loading
             try {
                 if(!condominioId.isEmpty()){
                     val response = getSectoresUseCase(condominioId)
                     if (response.estado) {
                         if(response.data.isNullOrEmpty()){
-                            _errorMessage.value = "No hay sectores disponibles"
+                            _uiState.value = SectorUiState.Empty
                         }else{
-                            _sectores.value = response.data!!
-                            _errorMessage.value = null
+                            _uiState.value = SectorUiState.Success(response.data!!)
                         }
                     } else {
-                        _errorMessage.value = response.mensaje
+                        _uiState.value = SectorUiState.Error(response.mensaje!!)
                     }
                 }else{
-                    _errorMessage.value = "No hay condominio seleccionado"
+                    _uiState.value = SectorUiState.Error("No hay condominio seleccionado")
                 }
             }catch (e: Exception){
-                _errorMessage.value = "Error de red: ${e.message}"
-            }finally {
-                _isLoading.value = false
+                _uiState.value = SectorUiState.Error("Error de red: ${e.message}")
             }
         }
     }

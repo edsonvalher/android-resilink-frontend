@@ -30,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.valher.resilink.common.condominio.presentation.viewmodel.CondominioUiState
 import com.valher.resilink.common.condominio.presentation.viewmodel.CondominioViewModel
 import com.valher.resilink.shared.SharedDataCondominioSector
 
@@ -40,20 +41,18 @@ fun CondominioDropDown(viewModel: CondominioViewModel = hiltViewModel()) {
     var selected by remember { mutableStateOf("") }
     var selectedId by remember { mutableStateOf<String?>(null) }
 
-    val condominios by viewModel.condominios.collectAsState()
-    val errorMessage by viewModel.errorMessage.collectAsState()
-    val isLoading by viewModel.isLoading.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
 
     Column(
         modifier = Modifier.fillMaxWidth()
     ) {
-        when {
-            isLoading -> {
+        when (uiState) {
+            is CondominioUiState.Loading  -> {
                 Box(modifier = Modifier.fillMaxWidth().height(50.dp), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(modifier = Modifier.size(24.dp))
                 }
             }
-            errorMessage != null -> {
+            is CondominioUiState.Error -> {
                 Box(modifier = Modifier.fillMaxWidth().height(50.dp), contentAlignment = Alignment.Center) {
                     Text(
                         text = "No fue posible cargar el control",
@@ -63,7 +62,8 @@ fun CondominioDropDown(viewModel: CondominioViewModel = hiltViewModel()) {
                     )
                 }
             }
-            condominios.isNotEmpty() -> {
+            is CondominioUiState.Success -> {
+                val condominios = (uiState as CondominioUiState.Success).condominios
                 ExposedDropdownMenuBox(
                     expanded = abrir,
                     onExpandedChange = { abrir = !abrir },
@@ -107,7 +107,7 @@ fun CondominioDropDown(viewModel: CondominioViewModel = hiltViewModel()) {
                     }
                 }
             }
-            else -> {
+            is CondominioUiState.Empty -> {
                 Box(modifier = Modifier.fillMaxWidth().height(50.dp), contentAlignment = Alignment.Center) {
                     Text(
                         text = "No hay condominios disponibles",

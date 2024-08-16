@@ -47,9 +47,9 @@ class CondominioDropDownTest {
 
         // Crear una implementación personalizada del ViewModel
         viewModel = object : CondominioViewModel(mockk(relaxed = true)) {
-            override val isLoading = isLoadingFlow
-            override val errorMessage = errorMessageFlow
-            override val condominios = condominiosFlow
+            val isLoading = isLoadingFlow
+            val errorMessage = errorMessageFlow
+            val condominios = condominiosFlow
         }
     }
 

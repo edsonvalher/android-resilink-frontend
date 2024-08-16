@@ -3,6 +3,7 @@ package com.valher.resilink.common.features.natives.cameragallery.presentation.v
 import android.app.Activity
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
@@ -22,15 +23,21 @@ class CameraGalleryViewModel @Inject constructor(
     private val takePhotoWithCameraUseCase: TakePhotoWithCameraUseCase
 ) : ViewModel() {
 
+    var TAG = "CameraGalleryViewModel"
+
+    // Estado para la URI de la imagen seleccionada
     private val _imageUri = MutableStateFlow<Uri?>(null)
     val imageUri: StateFlow<Uri?> = _imageUri.asStateFlow()
 
+    // Estado para gestionar la solicitud de permisos
     private val _requestPermissions = MutableStateFlow(false)
     val requestPermissions: StateFlow<Boolean> = _requestPermissions.asStateFlow()
 
+    // Estado para indicar si los permisos fueron concedidos
     private val _permissionsGranted = MutableStateFlow(false)
     val permissionsGranted: StateFlow<Boolean> = _permissionsGranted.asStateFlow()
 
+    // Función para verificar y solicitar permisos si es necesario
     fun checkAndRequestPermissions(activity: Activity) {
         val cameraPermission = ContextCompat.checkSelfPermission(
             activity,
@@ -46,31 +53,37 @@ class CameraGalleryViewModel @Inject constructor(
         ) {
             _permissionsGranted.value = true
         } else {
-            // No solicites permisos directamente aquí; notifica que se necesitan permisos
+            ActivityCompat.requestPermissions(
+                activity,
+                arrayOf(
+                    android.Manifest.permission.CAMERA,
+                    android.Manifest.permission.READ_EXTERNAL_STORAGE
+                ),
+                REQUEST_PERMISSIONS_CODE
+            )
             _requestPermissions.value = true
         }
     }
 
-    fun checkPermissions() {
-        _requestPermissions.value = true
-    }
-
+    // Función para manejar el resultado de la solicitud de permisos
     fun onPermissionsResult(granted: Boolean) {
         _permissionsGranted.value = granted
         _requestPermissions.value = false
     }
 
-    fun onAddPhotoClicked(activity: Activity, uri: Uri) {
+    // Función para seleccionar una imagen desde la galería
+    fun onAddPhotoClicked(activity: Activity) {
         if (_permissionsGranted.value) {
             viewModelScope.launch {
                 selectImageFromGalleryUseCase(activity)
-                _imageUri.value = uri
+                // La URI se establece en MainActivity después de seleccionar la imagen
             }
         } else {
             checkAndRequestPermissions(activity)
         }
     }
 
+    // Función para tomar una foto con la cámara
     fun onTakePhotoClicked(activity: Activity, uri: Uri) {
         if (_permissionsGranted.value) {
             viewModelScope.launch {
@@ -80,6 +93,12 @@ class CameraGalleryViewModel @Inject constructor(
         } else {
             checkAndRequestPermissions(activity)
         }
+    }
+
+    // Función para establecer la URI de la imagen desde MainActivity
+    fun setImageUri(uri: Uri) {
+        _imageUri.value = uri
+        Log.d(TAG, "setImageUri: $uri")
     }
 
     companion object {

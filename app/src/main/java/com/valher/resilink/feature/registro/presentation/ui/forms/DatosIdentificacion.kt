@@ -2,7 +2,14 @@ package com.valher.resilink.feature.registro.presentation.ui.forms
 
 import android.app.Activity
 import android.app.DatePickerDialog
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
+import android.util.Log
 import android.widget.DatePicker
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -28,11 +35,15 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.valher.resilink.R
 import com.valher.resilink.common.features.natives.cameragallery.presentation.ui.RequestCameraPermission
 import com.valher.resilink.common.features.natives.cameragallery.presentation.viewmodel.CameraGalleryViewModel
 import com.valher.resilink.common.utils.ui.Subtitulo
@@ -62,6 +73,12 @@ fun DatosIdentificacion(
     val expandedPhoto = remember { mutableStateOf(false) }
     val expandedDoc = remember { mutableStateOf(false) }
 
+    // Estado de permisos
+    val permissionsGranted by cameraGalleryViewModel.permissionsGranted.collectAsState()
+
+    // URI de la imagen
+    val imageUri by cameraGalleryViewModel.imageUri.collectAsState()
+
     val calendar = Calendar.getInstance().apply {
         add(Calendar.YEAR, -18)
     }
@@ -77,14 +94,6 @@ fun DatosIdentificacion(
         onFechaNacimientoChange(selectedDate.value)
     }
 
-    val imageUri by cameraGalleryViewModel.imageUri.collectAsState()
-
-    LaunchedEffect(imageUri) {
-        imageUri?.let {
-            onFotoUriChange(it.toString())
-        }
-    }
-
     val datePickerDialog = DatePickerDialog(
         activity,
         { _: DatePicker, selectedYear: Int, selectedMonth: Int, selectedDay: Int ->
@@ -97,6 +106,23 @@ fun DatosIdentificacion(
         day
     )
 
+    // Solicitar permisos si no están concedidos
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        cameraGalleryViewModel.onPermissionsResult(isGranted)
+    }
+    LaunchedEffect(Unit) {
+        if (!cameraGalleryViewModel.permissionsGranted.value) {
+            launcher.launch(android.Manifest.permission.CAMERA)
+        }else{
+            cameraGalleryViewModel.onPermissionsResult(true)
+        }
+    }
+    LaunchedEffect(imageUri) {
+        Log.d("CameraGalleryViewModel", "imageUri updated: $imageUri")
+    }
+
     Column(
         modifier = Modifier
             .fillMaxHeight()
@@ -106,120 +132,141 @@ fun DatosIdentificacion(
     ) {
         Subtitulo(texto = "Datos de Identificación")
 
-        // Solicitar permisos usando RequestCameraPermission
-        RequestCameraPermission(
-            viewModel = cameraGalleryViewModel,
-            onPermissionGranted = {
-                // Permisos concedidos
-                Column {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        RadioButton(
-                            selected = tipoDocumento == "DPI",
-                            onClick = { onTipoDocumentoChange("DPI") })
-                        Text(text = "DPI")
-                        Spacer(modifier = Modifier.width(16.dp))
-                        RadioButton(
-                            selected = tipoDocumento == "Pasaporte",
-                            onClick = { onTipoDocumentoChange("Pasaporte") })
-                        Text(text = "Pasaporte")
+        if (permissionsGranted) {
+            // Contenido principal cuando los permisos están concedidos
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                RadioButton(
+                    selected = tipoDocumento == "DPI",
+                    onClick = { onTipoDocumentoChange("DPI") })
+                Text(text = "DPI")
+                Spacer(modifier = Modifier.width(16.dp))
+                RadioButton(
+                    selected = tipoDocumento == "Pasaporte",
+                    onClick = { onTipoDocumentoChange("Pasaporte") })
+                Text(text = "Pasaporte")
+            }
+
+            OutlinedTextField(
+                value = dpi,
+                onValueChange = { onDpiChange(it) },
+                label = { Text("Número de Documento") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            OutlinedTextField(
+                value = selectedDate.value,
+                onValueChange = { },
+                label = { Text("Fecha de Nacimiento") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { datePickerDialog.show() },
+                enabled = false,
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Foto personal
+            Box {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (imageUri != null) {
+                        val bitmap = remember(imageUri) { getBitmapFromUri(imageUri!!, activity) }
+                        bitmap?.let {
+                            Image(
+                                bitmap = it.asImageBitmap(),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .width(50.dp)
+                                    .height(50.dp)
+                            )
+                        }
+                    } else {
+                        Image(
+                            painter = painterResource(id = R.drawable.sinimagen),
+                            contentDescription = "Imagen por defecto",
+                            modifier = Modifier
+                                .width(50.dp)
+                                .height(50.dp)
+                        )
                     }
-
-                    OutlinedTextField(
-                        value = dpi,
-                        onValueChange = { onDpiChange(it) },
-                        label = { Text("Número de Documento") },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    OutlinedTextField(
-                        value = selectedDate.value,
-                        onValueChange = { },
-                        label = { Text("Fecha de Nacimiento") },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { datePickerDialog.show() },
-                        enabled = false,
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // Foto personal
-                    Box {
-                        TextButton(onClick = { expandedPhoto.value = true }) {
-                            Text("Agregue su fotografía")
-                        }
-
-                        DropdownMenu(
-                            expanded = expandedPhoto.value,
-                            onDismissRequest = { expandedPhoto.value = false }
-                        ) {
-                            DropdownMenuItem(
-                                text = { Text("Cámara") },
-                                onClick = {
-                                    expandedPhoto.value = false
-                                    onTakePhoto()  // Lanza la cámara
-                                }
-                            )
-                            DropdownMenuItem(
-                                text = { Text("Galería") },
-                                onClick = {
-                                    expandedPhoto.value = false
-                                    onPickImage()  // Lanza la galería
-                                }
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // Foto del documento
-                    Box {
-                        TextButton(onClick = { expandedDoc.value = true }) {
-                            Text("Agregue fotografía del documento de Identificación")
-                        }
-
-                        DropdownMenu(
-                            expanded = expandedDoc.value,
-                            onDismissRequest = { expandedDoc.value = false }
-                        ) {
-                            DropdownMenuItem(
-                                text = { Text("Cámara") },
-                                onClick = {
-                                    expandedDoc.value = false
-                                    onTakePhoto()  // Lanza la cámara
-                                }
-                            )
-                            DropdownMenuItem(
-                                text = { Text("Galería") },
-                                onClick = {
-                                    expandedDoc.value = false
-                                    onPickImage()  // Lanza la galería
-                                }
-                            )
-                        }
-                    }
-
-                    Button(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 8.dp),
-                        onClick = {
-                            isButtonClicked.value = true
-                            onButtonClicked(true)
-                        }
-                    ) {
-                        Text(text = "Finalizar")
+                    Spacer(modifier = Modifier.width(8.dp))
+                    TextButton(onClick = { expandedPhoto.value = true }) {
+                        Text("Agregue su fotografía")
                     }
                 }
-            },
-            onPermissionDenied = {
-                // Permisos denegados, mostrar mensaje
-                Text(
-                    text = "Permisos de cámara y almacenamiento no concedidos. " +
-                            "Por favor, conceda los permisos para continuar.",
-                    color = MaterialTheme.colorScheme.error
-                )
+                DropdownMenu(
+                    expanded = expandedPhoto.value,
+                    onDismissRequest = { expandedPhoto.value = false }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("Cámara") },
+                        onClick = {
+                            expandedPhoto.value = false
+                            onTakePhoto()  // Lanza la cámara
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Galería") },
+                        onClick = {
+                            expandedPhoto.value = false
+                            onPickImage()  // Lanza la galería
+                        }
+                    )
+                }
             }
-        )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Foto del documento
+            Box {
+                TextButton(onClick = { expandedDoc.value = true }) {
+                    Text("Agregue fotografía del documento de Identificación")
+                }
+
+                DropdownMenu(
+                    expanded = expandedDoc.value,
+                    onDismissRequest = { expandedDoc.value = false }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("Cámara") },
+                        onClick = {
+                            expandedDoc.value = false
+                            onTakePhoto()  // Lanza la cámara
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Galería") },
+                        onClick = {
+                            expandedDoc.value = false
+                            onPickImage()  // Lanza la galería
+                        }
+                    )
+                }
+            }
+
+            Button(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
+                onClick = {
+                    isButtonClicked.value = true
+                    onButtonClicked(true)
+                }
+            ) {
+                Text(text = "Finalizar")
+            }
+        } else {
+            // Mostrar mensaje de error si no se han concedido los permisos
+            Text(
+                text = "Permisos de cámara y almacenamiento no concedidos. " +
+                        "Por favor, conceda los permisos para continuar.",
+                color = MaterialTheme.colorScheme.error
+            )
+        }
+    }
+}
+
+fun getBitmapFromUri(uri: Uri, activity: Activity): Bitmap? {
+    return activity.contentResolver.openInputStream(uri)?.use { inputStream ->
+        BitmapFactory.decodeStream(inputStream)
     }
 }

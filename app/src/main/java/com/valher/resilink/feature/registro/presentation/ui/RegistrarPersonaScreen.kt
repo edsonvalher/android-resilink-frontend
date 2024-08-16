@@ -38,6 +38,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import com.valher.resilink.common.features.natives.cameragallery.presentation.viewmodel.CameraGalleryViewModel
 import com.valher.resilink.feature.registro.presentation.ui.forms.DatosAutenticacion
 import com.valher.resilink.feature.registro.presentation.ui.forms.DatosIdentificacion
 import com.valher.resilink.feature.registro.presentation.ui.forms.DatosResidente
@@ -50,12 +51,13 @@ fun RegistrarPersonaScreen(
     navigationController: NavHostController,
     onPickImage: (Intent) -> Unit,
     onTakePhoto: (Intent) -> Unit,
-    viewModel: PersonaViewModel = hiltViewModel()
+    viewmodel: CameraGalleryViewModel = hiltViewModel(),
+    personaviewModel: PersonaViewModel = hiltViewModel()
 ) {
     var TAG = "RegistrarPersonaScreen"
-    val persona by viewModel.persona.collectAsState()
-    val errorMessage by viewModel.errorMessage.collectAsState()
-    val isLoading by viewModel.isLoading.collectAsState()
+    val persona by personaviewModel.persona.collectAsState()
+    val errorMessage by personaviewModel.errorMessage.collectAsState()
+    val isLoading by personaviewModel.isLoading.collectAsState()
 
     val paginas = listOf("Datos Personales", "Datos de Identificación")
     var nombre by remember { mutableStateOf("") }
@@ -185,7 +187,8 @@ fun RegistrarPersonaScreen(
                                             }
                                         },
                                         onPickImage = { onPickImage(galleryIntent)},
-                                        onTakePhoto = { onTakePhoto(cameraIntent) }
+                                        onTakePhoto = { onTakePhoto(cameraIntent) },
+                                        viewmodel
                                     )
                                 }
                             }

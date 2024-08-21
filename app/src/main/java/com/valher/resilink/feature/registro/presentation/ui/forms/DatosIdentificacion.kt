@@ -1,5 +1,6 @@
 package com.valher.resilink.feature.registro.presentation.ui.forms
 
+import VisualizarImagenDialog
 import android.app.Activity
 import android.app.DatePickerDialog
 import android.graphics.Bitmap
@@ -45,6 +46,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.valher.resilink.R
 import com.valher.resilink.common.features.natives.cameragallery.presentation.viewmodel.CameraGalleryViewModel
 import com.valher.resilink.common.utils.ui.Subtitulo
+
 import java.util.Calendar
 
 @Composable
@@ -70,6 +72,10 @@ fun DatosIdentificacion(
     // Dropdown states
     val expandedPhoto = remember { mutableStateOf(false) }
     val expandedDoc = remember { mutableStateOf(false) }
+
+    // Estados para mostrar el diálogo de imagen ampliada
+    val isUserPhotoPreviewVisible = remember { mutableStateOf(false) }
+    val isDocumentPhotoPreviewVisible = remember { mutableStateOf(false) }
 
     // Estado de permisos
     val permissionsGranted by cameraGalleryViewModel.permissionsGranted.collectAsState()
@@ -127,9 +133,11 @@ fun DatosIdentificacion(
         if (expandedPhoto.value) {
             userPhotoUri.value = cameraGalleryViewModel.imageUriCamera.value
             onFotoUriChange(cameraGalleryViewModel.imageUriCamera.value.toString())
+            expandedPhoto.value = false
         } else if (expandedDoc.value) {
             documentPhotoUri.value = cameraGalleryViewModel.imageUriCamera.value
             onDocumentoUriChange(cameraGalleryViewModel.imageUriCamera.value.toString())
+            expandedDoc.value = false
         }
     }
     LaunchedEffect(imageGalleryUri) {
@@ -137,9 +145,11 @@ fun DatosIdentificacion(
         if (expandedPhoto.value) {
             userPhotoUri.value = cameraGalleryViewModel.imageUriGallery.value
             onFotoUriChange(cameraGalleryViewModel.imageUriGallery.value.toString())
+            expandedPhoto.value = false
         } else if (expandedDoc.value) {
             documentPhotoUri.value = cameraGalleryViewModel.imageUriGallery.value
             onDocumentoUriChange(cameraGalleryViewModel.imageUriGallery.value.toString())
+            expandedDoc.value = false
         }
     }
 
@@ -197,6 +207,7 @@ fun DatosIdentificacion(
                                 modifier = Modifier
                                     .width(50.dp)
                                     .height(50.dp)
+                                    .clickable { isUserPhotoPreviewVisible.value = true }
                             )
                         }
                     } else {
@@ -206,6 +217,7 @@ fun DatosIdentificacion(
                             modifier = Modifier
                                 .width(50.dp)
                                 .height(50.dp)
+                                .clickable { isDocumentPhotoPreviewVisible.value = true }
                         )
                     }
                     Spacer(modifier = Modifier.width(8.dp))
@@ -301,10 +313,24 @@ fun DatosIdentificacion(
             )
         }
     }
+    if (isUserPhotoPreviewVisible.value) {
+        VisualizarImagenDialog(
+            imagen = getBitmapFromUri(userPhotoUri.value!!, activity),
+            onClose = { isUserPhotoPreviewVisible.value = false }
+        )
+    }
+    if (isDocumentPhotoPreviewVisible.value) {
+        VisualizarImagenDialog(
+            imagen = getBitmapFromUri(documentPhotoUri.value!!, activity),
+            onClose = { isDocumentPhotoPreviewVisible.value = false }
+        )
+    }
 }
+
 
 fun getBitmapFromUri(uri: Uri, activity: Activity): Bitmap? {
     return activity.contentResolver.openInputStream(uri)?.use { inputStream ->
         BitmapFactory.decodeStream(inputStream)
     }
 }
+

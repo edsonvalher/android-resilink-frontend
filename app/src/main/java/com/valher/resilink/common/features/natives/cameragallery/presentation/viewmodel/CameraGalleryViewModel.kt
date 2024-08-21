@@ -26,8 +26,11 @@ class CameraGalleryViewModel @Inject constructor(
     var TAG = "CameraGalleryViewModel"
 
     // Estado para la URI de la imagen seleccionada
-    private val _imageUri = MutableStateFlow<Uri?>(null)
-    val imageUri: StateFlow<Uri?> = _imageUri.asStateFlow()
+    private val _imageUriCamera = MutableStateFlow<Uri?>(null)
+    val imageUriCamera: StateFlow<Uri?> = _imageUriCamera.asStateFlow()
+
+    private val _imageUriGallery = MutableStateFlow<Uri?>(null)
+    val imageUriGallery: StateFlow<Uri?> = _imageUriGallery.asStateFlow()
 
     // Estado para gestionar la solicitud de permisos
     private val _requestPermissions = MutableStateFlow(false)
@@ -36,6 +39,8 @@ class CameraGalleryViewModel @Inject constructor(
     // Estado para indicar si los permisos fueron concedidos
     private val _permissionsGranted = MutableStateFlow(false)
     val permissionsGranted: StateFlow<Boolean> = _permissionsGranted.asStateFlow()
+
+
 
     // Función para verificar y solicitar permisos si es necesario
     fun checkAndRequestPermissions(activity: Activity) {
@@ -88,7 +93,7 @@ class CameraGalleryViewModel @Inject constructor(
         if (_permissionsGranted.value) {
             viewModelScope.launch {
                 takePhotoWithCameraUseCase(activity)
-                _imageUri.value = uri
+                _imageUriCamera.value = uri
             }
         } else {
             checkAndRequestPermissions(activity)
@@ -96,8 +101,12 @@ class CameraGalleryViewModel @Inject constructor(
     }
 
     // Función para establecer la URI de la imagen desde MainActivity
-    fun setImageUri(uri: Uri) {
-        _imageUri.value = uri
+    fun setImageUriCamera(uri: Uri) {
+        _imageUriCamera.value = uri
+        Log.d(TAG, "setImageUri: $uri")
+    }
+    fun setImageUriGallery(uri: Uri) {
+        _imageUriGallery.value = uri
         Log.d(TAG, "setImageUri: $uri")
     }
 

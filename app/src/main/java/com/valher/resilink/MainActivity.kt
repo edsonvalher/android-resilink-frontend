@@ -51,7 +51,7 @@ class MainActivity : ComponentActivity() {
             if (result.resultCode == RESULT_OK) {
                 val imageUri: Uri? = result.data?.data
                 imageUri?.let {
-                    cameraGalleryViewModel.setImageUri(it)
+                    cameraGalleryViewModel.setImageUriGallery(it)
                 }
             }
         }
@@ -61,7 +61,7 @@ class MainActivity : ComponentActivity() {
             ActivityResultContracts.TakePicture()
         ) { success ->
             if (success && tempImageUri != null) {
-                cameraGalleryViewModel.setImageUri(tempImageUri!!)
+                cameraGalleryViewModel.setImageUriCamera(tempImageUri!!)
             } else {
                 tempImageUri = null
             }

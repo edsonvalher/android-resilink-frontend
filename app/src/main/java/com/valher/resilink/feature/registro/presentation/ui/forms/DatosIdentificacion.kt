@@ -35,7 +35,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
@@ -44,7 +43,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.valher.resilink.R
-import com.valher.resilink.common.features.natives.cameragallery.presentation.ui.RequestCameraPermission
 import com.valher.resilink.common.features.natives.cameragallery.presentation.viewmodel.CameraGalleryViewModel
 import com.valher.resilink.common.utils.ui.Subtitulo
 import java.util.Calendar
@@ -77,7 +75,12 @@ fun DatosIdentificacion(
     val permissionsGranted by cameraGalleryViewModel.permissionsGranted.collectAsState()
 
     // URI de la imagen
-    val imageUri by cameraGalleryViewModel.imageUri.collectAsState()
+    val imageCameraUri by cameraGalleryViewModel.imageUriCamera.collectAsState()
+    val imageGalleryUri by cameraGalleryViewModel.imageUriGallery.collectAsState()
+    // URI separadas para foto de usuario y foto de documento
+    val userPhotoUri = remember { mutableStateOf<Uri?>(null) }
+    val documentPhotoUri = remember { mutableStateOf<Uri?>(null) }
+
 
     val calendar = Calendar.getInstance().apply {
         add(Calendar.YEAR, -18)
@@ -119,8 +122,25 @@ fun DatosIdentificacion(
             cameraGalleryViewModel.onPermissionsResult(true)
         }
     }
-    LaunchedEffect(imageUri) {
-        Log.d("CameraGalleryViewModel", "imageUri updated: $imageUri")
+    LaunchedEffect(imageCameraUri) {
+        Log.d("CameraGalleryViewModel", "camera updated: $imageCameraUri")
+        if (expandedPhoto.value) {
+            userPhotoUri.value = cameraGalleryViewModel.imageUriCamera.value
+            onFotoUriChange(cameraGalleryViewModel.imageUriCamera.value.toString())
+        } else if (expandedDoc.value) {
+            documentPhotoUri.value = cameraGalleryViewModel.imageUriCamera.value
+            onDocumentoUriChange(cameraGalleryViewModel.imageUriCamera.value.toString())
+        }
+    }
+    LaunchedEffect(imageGalleryUri) {
+        Log.d("CameraGalleryViewModel", "gallery updated: $imageGalleryUri")
+        if (expandedPhoto.value) {
+            userPhotoUri.value = cameraGalleryViewModel.imageUriGallery.value
+            onFotoUriChange(cameraGalleryViewModel.imageUriGallery.value.toString())
+        } else if (expandedDoc.value) {
+            documentPhotoUri.value = cameraGalleryViewModel.imageUriGallery.value
+            onDocumentoUriChange(cameraGalleryViewModel.imageUriGallery.value.toString())
+        }
     }
 
     Column(
@@ -168,9 +188,9 @@ fun DatosIdentificacion(
             // Foto personal
             Box {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    if (imageUri != null) {
-                        val bitmap = remember(imageUri) { getBitmapFromUri(imageUri!!, activity) }
-                        bitmap?.let {
+                    if (userPhotoUri.value != null) {
+                        val bitmapFotoUsuario = remember(userPhotoUri.value) { getBitmapFromUri(userPhotoUri.value!!, activity) }
+                        bitmapFotoUsuario?.let {
                             Image(
                                 bitmap = it.asImageBitmap(),
                                 contentDescription = null,
@@ -200,14 +220,12 @@ fun DatosIdentificacion(
                     DropdownMenuItem(
                         text = { Text("Cámara") },
                         onClick = {
-                            expandedPhoto.value = false
                             onTakePhoto()  // Lanza la cámara
                         }
                     )
                     DropdownMenuItem(
                         text = { Text("Galería") },
                         onClick = {
-                            expandedPhoto.value = false
                             onPickImage()  // Lanza la galería
                         }
                     )
@@ -218,10 +236,32 @@ fun DatosIdentificacion(
 
             // Foto del documento
             Box {
-                TextButton(onClick = { expandedDoc.value = true }) {
-                    Text("Agregue fotografía del documento de Identificación")
+                Row(verticalAlignment = Alignment.CenterVertically){
+                    if (documentPhotoUri.value != null) {
+                        val bitmapFotoDocumento = remember(documentPhotoUri.value) { getBitmapFromUri(documentPhotoUri.value!!, activity) }
+                        bitmapFotoDocumento?.let {
+                            Image(
+                                bitmap = it.asImageBitmap(),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .width(50.dp)
+                                    .height(50.dp)
+                            )
+                        }
+                    }
+                    else {
+                        Image(
+                            painter = painterResource(id = R.drawable.sinimagen),
+                            contentDescription = "Imagen por defecto",
+                            modifier = Modifier
+                                .width(50.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    TextButton(onClick = { expandedDoc.value = true }) {
+                        Text("Agregue fotografía del documento de Identificación")
+                    }
                 }
-
                 DropdownMenu(
                     expanded = expandedDoc.value,
                     onDismissRequest = { expandedDoc.value = false }
@@ -229,14 +269,12 @@ fun DatosIdentificacion(
                     DropdownMenuItem(
                         text = { Text("Cámara") },
                         onClick = {
-                            expandedDoc.value = false
                             onTakePhoto()  // Lanza la cámara
                         }
                     )
                     DropdownMenuItem(
                         text = { Text("Galería") },
                         onClick = {
-                            expandedDoc.value = false
                             onPickImage()  // Lanza la galería
                         }
                     )

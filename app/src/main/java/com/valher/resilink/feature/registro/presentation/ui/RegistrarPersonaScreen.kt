@@ -26,10 +26,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -54,36 +51,39 @@ fun RegistrarPersonaScreen(
     viewmodel: CameraGalleryViewModel = hiltViewModel(),
     personaviewModel: PersonaViewModel = hiltViewModel()
 ) {
-    var TAG = "RegistrarPersonaScreen"
     val persona by personaviewModel.persona.collectAsState()
     val errorMessage by personaviewModel.errorMessage.collectAsState()
     val isLoading by personaviewModel.isLoading.collectAsState()
 
-    val paginas = listOf("Datos Personales", "Datos de Identificación")
-    var nombre by remember { mutableStateOf("") }
-    var apellido by remember { mutableStateOf("") }
-    var correo by remember { mutableStateOf("") }
-    var telefono by remember { mutableStateOf("") }
-    var contrasena by remember { mutableStateOf("") }
-    var numeroDocumento by remember { mutableStateOf("") }
-    var tipoDocumento by remember { mutableStateOf("") }
-    var codigoAcceso by remember { mutableStateOf("") }
-    var fechaNacimiento by remember { mutableStateOf("") }
-    var numerocasa by remember { mutableStateOf("") }
-    var activo by remember { mutableStateOf(true) }
-    val pagerState = rememberPagerState(pageCount = { 3 })
-    var isDatosResidenteSuccess by remember { mutableStateOf(false) }
-    val coroutineScope = rememberCoroutineScope()
-    var fotoUri by remember { mutableStateOf("") }
-    var documentoUri by remember { mutableStateOf("") }
+    val nombre by personaviewModel.nombre.collectAsState()
+    val nombreError by personaviewModel.nombreError.collectAsState()
+    val apellido by personaviewModel.apellido.collectAsState()
+    val apellidoError by personaviewModel.apellidoError.collectAsState()
+    val correo by personaviewModel.correo.collectAsState()
+    val correoError by personaviewModel.correoError.collectAsState()
+    val recorreo by personaviewModel.recorreo.collectAsState()
+    val telefono by personaviewModel.telefono.collectAsState()
+    val telefonoError by personaviewModel.telefonoError.collectAsState()
+    val contrasena by personaviewModel.contrasena.collectAsState()
+    val recontrasena by personaviewModel.recontrasena.collectAsState()
+    val numeroDocumento by personaviewModel.numeroDocumento.collectAsState()
+    val tipoDocumento by personaviewModel.tipoDocumento.collectAsState()
+    val codigoAcceso by personaviewModel.codigoAcceso.collectAsState()
+    val codigoAccesoError by personaviewModel.codigoAccesoError.collectAsState()
+    val fechaNacimiento by personaviewModel.fechaNacimiento.collectAsState()
+    val numerocasa by personaviewModel.numerocasa.collectAsState()
+    val numerocasaError by personaviewModel.numerocasaError.collectAsState()
+    val fotoUri by personaviewModel.fotoUri.collectAsState()
+    val documentoUri by personaviewModel.documentoUri.collectAsState()
 
+    val TAG = "RegistrarPersonaScreen"
+    val pagerState = rememberPagerState(pageCount = { 3 })
+    val coroutineScope = rememberCoroutineScope()
     val galleryIntent = Intent(Intent.ACTION_PICK).apply {
         type = "image/*"
     }
 
     val cameraIntent = Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE)
-
-
 
     Scaffold(
         topBar = {
@@ -123,21 +123,24 @@ fun RegistrarPersonaScreen(
                         HorizontalPager(
                             state = pagerState,
                             modifier = Modifier.weight(1f),
-                            //userScrollEnabled = false,
                         ) { page ->
                             when (page) {
                                 0 -> {
                                     DatosResidente(
                                         nombre = nombre,
-                                        onNombreChange = { nombre = it },
+                                        onNombreChange = { personaviewModel.onNombreChange(it) },
+                                        nombreError = nombreError,
                                         apellido = apellido,
-                                        onApellidoChange = { apellido = it },
+                                        apellidoError = apellidoError,
+                                        onApellidoChange = { personaviewModel.onApellidoChange(it) },
                                         numerocasa = numerocasa,
-                                        onNumerocasaChange = { numerocasa = it },
+                                        numerocasaError = numerocasaError,
+                                        onNumerocasaChange = { personaviewModel.onNumerocasaChange(it) },
                                         codigoAcceso = codigoAcceso,
-                                        onCodigoAccesoChange = { codigoAcceso = it },
+                                        codigoAccesoError = codigoAccesoError,
+                                        onCodigoAccesoChange = { personaviewModel.onCodigoAccesoChange(it) },
                                         onButtonClicked = { clicked ->
-                                            if(clicked){
+                                            if (clicked) {
                                                 coroutineScope.launch {
                                                     pagerState.animateScrollToPage(page = 1)
                                                 }
@@ -146,20 +149,19 @@ fun RegistrarPersonaScreen(
                                     )
                                 }
                                 1 -> {
-
                                     DatosAutenticacion(
                                         correo = correo,
-                                        onCorreoChange = { correo = it },
-                                        confirmCorreo = correo,
-                                        onConfirmCorreoChange = { correo = it },
+                                        onCorreoChange = { personaviewModel.onCorreoChange(it) },
+                                        confirmCorreo = recorreo,
+                                        onConfirmCorreoChange = { personaviewModel.onReCorreoChange(it) },
                                         telefono = telefono,
-                                        onTelefonoChange = { telefono = it },
+                                        onTelefonoChange = { personaviewModel.onTelefonoChange(it) },
                                         contrasena = contrasena,
-                                        onContrasenaChange = { contrasena = it },
-                                        confirmContrasena = contrasena,
-                                        onConfirmContrasenaChange = { contrasena = it },
+                                        onContrasenaChange = { personaviewModel.onContrasenaChange(it) },
+                                        confirmContrasena = recontrasena,
+                                        onConfirmContrasenaChange = { personaviewModel.onReContrasenaChange(it) },
                                         onButtonClicked = { clicked ->
-                                            if(clicked){
+                                            if (clicked) {
                                                 coroutineScope.launch {
                                                     pagerState.animateScrollToPage(page = 2)
                                                 }
@@ -170,23 +172,24 @@ fun RegistrarPersonaScreen(
                                 2 -> {
                                     DatosIdentificacion(
                                         tipoDocumento = tipoDocumento,
-                                        onTipoDocumentoChange = {tipoDocumento = it} ,
+                                        onTipoDocumentoChange = { personaviewModel.onTipoDocumentoChange(it) },
                                         fechaNacimiento = fechaNacimiento,
-                                        onFechaNacimientoChange = {fechaNacimiento = it},
+                                        onFechaNacimientoChange = { personaviewModel.onFechaNacimientoChange(it) },
                                         dpi = numeroDocumento,
-                                        onDpiChange = {numeroDocumento = it},
+                                        onDpiChange = { personaviewModel.onNumeroDocumentoChange(it) },
                                         fotoUri = fotoUri,
-                                        onFotoUriChange = {fotoUri = it} ,
+                                        onFotoUriChange = { personaviewModel.onFotoUriChange(it) },
                                         documentoUri = documentoUri,
-                                        onDocumentoUriChange ={documentoUri = it} ,
+                                        onDocumentoUriChange = { personaviewModel.onDocumentoUriChange(it) },
                                         onButtonClicked = { clicked ->
-                                            if(clicked){
+                                            if (clicked) {
                                                 coroutineScope.launch {
+                                                    personaviewModel.registrarPersona()
                                                     Log.d(TAG, "RegistrarPersonaScreen: $persona")
                                                 }
                                             }
                                         },
-                                        onPickImage = { onPickImage(galleryIntent)},
+                                        onPickImage = { onPickImage(galleryIntent) },
                                         onTakePhoto = { onTakePhoto(cameraIntent) },
                                         viewmodel
                                     )

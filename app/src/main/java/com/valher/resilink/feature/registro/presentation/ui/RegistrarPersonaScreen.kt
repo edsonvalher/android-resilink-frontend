@@ -113,7 +113,7 @@ fun RegistrarPersonaScreen(
                     }
                     errorMessage != null -> {
                         Text(
-                            text = "No fue posible cargar el control",
+                            text = errorMessage?: "No fue posible cargar el control",
                             color = MaterialTheme.colorScheme.error,
                             style = MaterialTheme.typography.bodyMedium,
                             modifier = Modifier.testTag("ErrorMessage")

@@ -60,6 +60,8 @@ fun DatosResidente(
             label = { Text("Número de casa") },
             isError = numerocasaError != null,
             modifier = Modifier.fillMaxWidth(),
+            maxLines = 1,
+            singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
         )
         numerocasaError?.let { Text(it, color = androidx.compose.ui.graphics.Color.Red) }
@@ -70,6 +72,8 @@ fun DatosResidente(
             label = { Text("Código de acceso") },
             isError = codigoAccesoError != null,
             modifier = Modifier.fillMaxWidth(),
+            maxLines = 1,
+            singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
         )
         codigoAccesoError?.let { Text(it, color = androidx.compose.ui.graphics.Color.Red) }
@@ -80,6 +84,8 @@ fun DatosResidente(
             label = { Text("Nombres del residente") },
             isError = nombreError != null,
             modifier = Modifier.fillMaxWidth(),
+            maxLines = 1,
+            singleLine = true,
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Text, // Teclado de texto
                 capitalization = KeyboardCapitalization.Sentences // Primera letra mayúscula
@@ -92,6 +98,8 @@ fun DatosResidente(
             label = { Text("Apellidos del residente") },
             isError = apellidoError != null,
             modifier = Modifier.fillMaxWidth(),
+            maxLines = 1,
+            singleLine = true,
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Text, // Teclado de texto
                 capitalization = KeyboardCapitalization.Sentences // Primera letra mayúscula

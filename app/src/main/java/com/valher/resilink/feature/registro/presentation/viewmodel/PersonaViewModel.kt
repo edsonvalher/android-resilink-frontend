@@ -39,7 +39,15 @@ class PersonaViewModel @Inject constructor(
 
     private val _correoError = MutableStateFlow<String?>(null)
     val correoError: StateFlow<String?> = _correoError
+    // Errores adicionales
+    private val _recorreoError = MutableStateFlow<String?>(null)
+    val recorreoError: StateFlow<String?> = _recorreoError
 
+    private val _contrasenaError = MutableStateFlow<String?>(null)
+    val contrasenaError: StateFlow<String?> = _contrasenaError
+
+    private val _recontrasenaError = MutableStateFlow<String?>(null)
+    val recontrasenaError: StateFlow<String?> = _recontrasenaError
 
 
     // Variables de estado para los campos del formulario
@@ -122,6 +130,16 @@ class PersonaViewModel @Inject constructor(
         _correoError.value = if (!isValid) "Correo electrónico no válido" else null
         return isValid
     }
+    fun validarCorreoConfirmacion(): Boolean {
+        val isValid = _correo.value == _recorreo.value
+        _recorreoError.value = if (!isValid) "Los correos no coinciden" else null
+        return isValid
+    }
+    fun validarContrasenaConfirmacion(): Boolean {
+        val isValid = _contrasena.value == _recontrasena.value
+        _recontrasenaError.value = if (!isValid) "Las contraseñas no coinciden" else null
+        return isValid
+    }
     fun validarFechaNacimiento(): Boolean {
         val datePattern = Regex("""\d{2}/\d{2}/\d{4}""")
         return datePattern.matches(_fechaNacimiento.value)
@@ -162,7 +180,9 @@ class PersonaViewModel @Inject constructor(
         return total % 11 == ver
     }
     fun validarContrasena(): Boolean {
-        return _contrasena.value.length >= 6
+        val isValid = _contrasena.value.length >= 6
+        _contrasenaError.value = if (!isValid) "La contraseña debe tener al menos 6 caracteres" else null
+        return isValid
     }
     fun validarReingresoContrasena(): Boolean {
         return _contrasena.value == _recontrasena.value
@@ -189,16 +209,12 @@ class PersonaViewModel @Inject constructor(
                 _errorMessage.value = "La contraseña debe tener al menos 6 caracteres."
                 return
             }
-            if (!validarReingresoContrasena()) {
+            if (!validarContrasenaConfirmacion()) {
                 _errorMessage.value = "Las contraseñas no coinciden."
                 return
             }
             if (!validarCorreo()) {
                 _errorMessage.value = "El correo no tiene un formato válido."
-                return
-            }
-            if (!validarReingresoContrasena()) {
-                _errorMessage.value = "Las contraseñas no coinciden."
                 return
             }
             if (!validarCondominio()) {
@@ -283,6 +299,7 @@ class PersonaViewModel @Inject constructor(
     }
     fun onReCorreoChange(value: String) {
         _recorreo.value = value
+        validarCorreoConfirmacion()
         updatePersona()
     }
 
@@ -299,6 +316,7 @@ class PersonaViewModel @Inject constructor(
     }
     fun onReContrasenaChange(value: String) {
         _recontrasena.value = value
+        validarContrasenaConfirmacion()
         updatePersona()
     }
 

@@ -62,10 +62,13 @@ fun RegistrarPersonaScreen(
     val correo by personaviewModel.correo.collectAsState()
     val correoError by personaviewModel.correoError.collectAsState()
     val recorreo by personaviewModel.recorreo.collectAsState()
+    val recorreoError by personaviewModel.recorreoError.collectAsState()
     val telefono by personaviewModel.telefono.collectAsState()
     val telefonoError by personaviewModel.telefonoError.collectAsState()
     val contrasena by personaviewModel.contrasena.collectAsState()
+    val contrasenaError by personaviewModel.contrasenaError.collectAsState()
     val recontrasena by personaviewModel.recontrasena.collectAsState()
+    val recontrasenaError by personaviewModel.recontrasenaError.collectAsState()
     val numeroDocumento by personaviewModel.numeroDocumento.collectAsState()
     val tipoDocumento by personaviewModel.tipoDocumento.collectAsState()
     val codigoAcceso by personaviewModel.codigoAcceso.collectAsState()
@@ -151,14 +154,19 @@ fun RegistrarPersonaScreen(
                                 1 -> {
                                     DatosAutenticacion(
                                         correo = correo,
+                                        correoError = correoError,
                                         onCorreoChange = { personaviewModel.onCorreoChange(it) },
                                         confirmCorreo = recorreo,
+                                        confirmCorreoError = recorreoError,
                                         onConfirmCorreoChange = { personaviewModel.onReCorreoChange(it) },
                                         telefono = telefono,
+                                        telefonoError = telefonoError,
                                         onTelefonoChange = { personaviewModel.onTelefonoChange(it) },
                                         contrasena = contrasena,
+                                        contrasenaError = contrasenaError,
                                         onContrasenaChange = { personaviewModel.onContrasenaChange(it) },
                                         confirmContrasena = recontrasena,
+                                        confirmContrasenaError = recontrasenaError,
                                         onConfirmContrasenaChange = { personaviewModel.onReContrasenaChange(it) },
                                         onButtonClicked = { clicked ->
                                             if (clicked) {
